@@ -1,0 +1,12 @@
+[
+    {
+        "user": "username",
+        "action": "input",
+        "details": "rmdir -p -v E/E/E"
+    },
+    {
+        "user": "username",
+        "action": "input",
+        "details": "ls"
+    }
+]
