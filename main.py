@@ -112,16 +112,23 @@ class ShellEmulator:
         else:
             print(f"No such directory: {path}")
 
-    def cd(self, args):
+        def cd(self, args):
         if not args:
             print("Usage: cd <directory>")
             return
 
-        path = self._get_real_path(args[0])
-        if os.path.isdir(path):
-            self.current_dir = os.path.relpath(path, self.virtual_fs_root)
+        target_path = args[0]
+        real_path = self._get_real_path(target_path)
+
+        if not real_path.startswith("virtual_fs"):
+            print(f"cd: permission denied: {target_path}")
+            return
+
+        if os.path.isdir(real_path):
+            self.current_dir = os.path.relpath(real_path, self.virtual_fs_root)
         else:
-            print(f"No such directory: {args[0]}")
+            print(f"cd: no such file or directory: {target_path}")
+
 
     def rmdir(self, args):
         if not args:
