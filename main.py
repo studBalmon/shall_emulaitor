@@ -42,12 +42,15 @@ class ShellEmulator:
             path = os.path.join(self.current_dir, path)
         return os.path.normpath(os.path.join(self.virtual_fs_root, path.strip("/")))
 
+        def clean_up(self):
+        if os.path.exists(self.virtual_fs_root):
+            shutil.rmtree(self.virtual_fs_root)
+            print("Temporary virtual file system removed.")
+
     def run(self):
-        # Выполнение команд из стартового скрипта, если он указан
         if self.start_script:
             self._execute_script(self.start_script)
 
-        # Основной цикл эмулятора
         while True:
             try:
                 command = input(f"{self.username}:{self.current_dir}$ ").strip()
@@ -61,6 +64,7 @@ class ShellEmulator:
                 if cmd == "exit":
                     print("Exiting shell...")
                     self._write_log()
+                    self.clean_up()
                     break
                 elif cmd == "ls":
                     self.ls(args)
@@ -75,7 +79,9 @@ class ShellEmulator:
             except (KeyboardInterrupt, EOFError):
                 print("\nExiting shell...")
                 self._write_log()
+                self.clean_up()
                 break
+
 
     def _execute_script(self, script_path):
         try:
@@ -104,30 +110,47 @@ class ShellEmulator:
         else:
             print(f"Unknown command: {cmd}")
 
-    def ls(self, args):
-        path = self._get_real_path(args[0] if args else ".")
-        if os.path.exists(path):
-            for item in os.listdir(path):
-                print(item)
-        else:
-            print(f"No such directory: {path}")
-
-        def cd(self, args):
-        if not args:
-            print("Usage: cd <directory>")
+        def ls(self, args):
+        recursive = "-R" in args
+        path = self._get_real_path(args[0] if args and args[0] != "-R" else ".")
+        
+        if not os.path.exists(path):
+            print(f"ls: cannot access '{path}': No such file or directory")
             return
 
-        target_path = args[0]
-        real_path = self._get_real_path(target_path)
+        def list_directory(directory, show_header=True):
+            relative_path = directory[len(self.virtual_fs_root):] or "/"
+            if show_header:
+                print(f"{relative_path}:")
 
-        if not real_path.startswith("virtual_fs"):
-            print(f"cd: permission denied: {target_path}")
-            return
+            try:
+                items = sorted(os.listdir(directory)) 
+                output = []
+                for item in items:
+                    item_path = os.path.join(directory, item)
+                    if os.path.isdir(item_path):
+                        output.append(f"{item}/")
+                    else:
+                        output.append(item)
+                print("  ".join(output) if output else "")
+                return items
+            except PermissionError:
+                print(f"ls: cannot open directory '{relative_path}': Permission denied")
+                return []
 
-        if os.path.isdir(real_path):
-            self.current_dir = os.path.relpath(real_path, self.virtual_fs_root)
+        def recursive_list(directory):
+            items = list_directory(directory)
+            for item in items:
+                item_path = os.path.join(directory, item)
+                if os.path.isdir(item_path):
+                    print() 
+                    recursive_list(item_path)
+
+        if recursive:
+            recursive_list(path)
         else:
-            print(f"cd: no such file or directory: {target_path}")
+            list_directory(path, show_header=False)
+
 
 
     def rmdir(self, args):
