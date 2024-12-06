@@ -3,7 +3,7 @@ import os
 import shutil
 import json
 import tarfile
-from shell_emulator import ShellEmulator  # Импорт вашего эмулятора
+from main import ShellEmulator  # Импорт вашего эмулятора
 
 class TestShellEmulator(unittest.TestCase):
     def setUp(self):
