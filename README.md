@@ -33,3 +33,4 @@
 ## Результаты прогона тестов
 
 ![image](https://github.com/user-attachments/assets/c82ff9c0-0976-4034-afe4-3c93eadaba80)
+![image](https://github.com/user-attachments/assets/ad16fca4-2a4f-4bcf-b230-aca4e171da38)
